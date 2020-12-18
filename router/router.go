@@ -2,6 +2,7 @@ package router
 
 import (
 	"gin-boot/controllers"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +14,7 @@ func init() {
 	router = gin.Default()
 }
 
-func Load() *gin.Engine{
+func Load() *gin.Engine {
 	boot := &controllers.Boot{}
 	router.GET("/boot/client-ip", boot.ClientIp)
 

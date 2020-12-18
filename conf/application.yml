@@ -1,0 +1,11 @@
+app:
+  mode: test
+  addr: :8080
+
+redis:
+  boot:
+    - { host: 127.0.0.1, port: 6379, readTimeout: 200, writeTimeout: 200, poolSize: 20 }
+    - { host: 127.0.0.1, port: 6379, readTimeout: 200, writeTimeout: 200, poolSize: 20 }
+
+params:
+  pageSize: 15

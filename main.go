@@ -9,8 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"gin-boot/global"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +21,7 @@ import (
 // @host 127.0.0.1
 // @BasePath /
 func main() {
-	global.Bootstrap()
+	Bootstrap()
 
 	r := gin.Default()
 	server := &http.Server{
@@ -31,7 +29,7 @@ func main() {
 		Handler:        r,
 		ReadTimeout:    time.Millisecond * 200,
 		WriteTimeout:   time.Millisecond * 200,
-		MaxHeaderBytes: 1024*1024,
+		MaxHeaderBytes: 1024 * 1024,
 	}
 
 	go func() {
