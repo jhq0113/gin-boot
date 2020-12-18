@@ -2,12 +2,10 @@ package conf
 
 import (
 	"encoding/json"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"time"
-
-	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -36,10 +34,10 @@ type RedisOption struct {
 	Auth string `yaml:"auth" json:"auth"`
 	Db   uint8  `yaml:"db" json:"db"`
 	//单位s
-	MaxConnLifetime time.Duration `yaml:"db" json:"db"`
-	MaxIdle         int           `yaml:"maxIdle" json:"maxIdle"`
-	MaxActive       int           `yaml:"maxActive" json:"maxActive"`
-	Wait            bool          `yaml:"wait" json:"wait"`
+	MaxConnLifetime int  `yaml:"db" json:"db"`
+	MaxIdle         int  `yaml:"maxIdle" json:"maxIdle"`
+	MaxActive       int  `yaml:"maxActive" json:"maxActive"`
+	Wait            bool `yaml:"wait" json:"wait"`
 	//单位ms
 	ConnectTimeout int `yaml:"connectTimeout" json:"connectTimeout"`
 	//单位ms
