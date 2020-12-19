@@ -34,7 +34,7 @@ type RedisOption struct {
 	Auth string `yaml:"auth" json:"auth"`
 	Db   uint8  `yaml:"db" json:"db"`
 	//单位s
-	MaxConnLifetime int  `yaml:"db" json:"db"`
+	MaxConnLifetime int  `yaml:"maxConnLifetime" json:"maxConnLifetime"`
 	MaxIdle         int  `yaml:"maxIdle" json:"maxIdle"`
 	MaxActive       int  `yaml:"maxActive" json:"maxActive"`
 	Wait            bool `yaml:"wait" json:"wait"`

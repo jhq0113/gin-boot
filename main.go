@@ -9,6 +9,9 @@ import (
 	"syscall"
 	"time"
 
+	"gin-boot/conf"
+	"gin-boot/router"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,14 +26,12 @@ import (
 func main() {
 	Bootstrap()
 
-	r := gin.Default()
 	server := &http.Server{
-		Addr:           "",
-		Handler:        r,
-		ReadTimeout:    time.Millisecond * 200,
-		WriteTimeout:   time.Millisecond * 200,
-		MaxHeaderBytes: 1024 * 1024,
+		Addr:    conf.Conf.App.Addr,
+		Handler: router.Load(),
 	}
+
+	gin.SetMode(conf.Conf.App.Mode)
 
 	go func() {
 		err := server.ListenAndServe()
