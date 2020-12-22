@@ -47,6 +47,15 @@ type RedisOption struct {
 	WriteTimeout int `yaml:"writeTimeout" json:"writeTimeout"`
 }
 
+type MysqlOption struct {
+	//格式："userName:password@schema(host:port)/dbName"，如：root:123456@tcp(127.0.0.1:3306)/test
+	Dsn string `yaml:"dsn" json:"dsn"`
+	//单位s
+	MaxConnLifetime int  `yaml:"maxConnLifetime" json:"maxConnLifetime"`
+	MaxOpenConns    int  `yaml:"maxOpenConns" json:"maxOpenConns"`
+	MaxIdleConns    int  `yaml:"maxIdleConns" json:"maxIdleConns"`
+}
+
 func YamlConfig(filePath string) *Config {
 	conf, err := ioutil.ReadFile(filePath)
 	if err != nil {
