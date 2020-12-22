@@ -2,10 +2,11 @@ package conf
 
 import (
 	"encoding/json"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -44,6 +45,15 @@ type RedisOption struct {
 	ReadTimeout int `yaml:"readTimeout" json:"readTimeout"`
 	//单位ms
 	WriteTimeout int `yaml:"writeTimeout" json:"writeTimeout"`
+}
+
+type MysqlOption struct {
+	//格式："userName:password@schema(host:port)/dbName"，如：root:123456@tcp(127.0.0.1:3306)/test
+	Dsn string `yaml:"dsn" json:"dsn"`
+	//单位s
+	MaxConnLifetime int  `yaml:"maxConnLifetime" json:"maxConnLifetime"`
+	MaxOpenConns    int  `yaml:"maxOpenConns" json:"maxOpenConns"`
+	MaxIdleConns    int  `yaml:"maxIdleConns" json:"maxIdleConns"`
 }
 
 func YamlConfig(filePath string) *Config {
