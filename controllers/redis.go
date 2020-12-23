@@ -39,7 +39,7 @@ func (this *Redis) Multi(ctx *gin.Context) {
 
 	buf := bytes.NewBuffer(nil)
 	for _, reply := range result {
-
+		buf.WriteString(reply.(string))
 	}
 	ctx.Writer.WriteString("ok")
 }

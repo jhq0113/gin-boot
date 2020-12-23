@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"bytes"
-	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -10,20 +10,14 @@ import (
 )
 
 const (
-	formatIn = " (`%s` IN (%s)) AND"
-	formatBetween = " (`%s` BETWEEN ? AND ?) AND"
-	formatLike = " (`%s` LIKE ?) AND"
-	formatCom = " (`%s` %s ?) AND"
-	//SELECT fields FROM table WHERE condition GROUP BY fields HAVING aggregation ORDER BY fields LIMIT offset,limit
-	selectSql = "SELECT %s FROM %s %s %s %s %s LIMIT %d,%d"
-	inHolder =  "?,"
-	defaultLimit  = 1000
+	inHolder     = "?,"
+	defaultLimit = 1000
 )
 
 var (
-	defaultColumns       = "*"
-	wherePrefix          = []byte("WHERE ")
-	queryPool            = &sync.Pool{
+	defaultColumns = "*"
+	wherePrefix    = []byte(" WHERE ")
+	queryPool      = &sync.Pool{
 		New: func() interface{} {
 			query := &Query{
 				limit:   defaultLimit,
@@ -77,7 +71,7 @@ func (q *Query) From(table string) *Query {
 	return q
 }
 
-func (q *Query) Select(columns...string) *Query {
+func (q *Query) Select(columns ...string) *Query {
 	q.columns = strings.Join(columns, ",")
 	return q
 }
@@ -87,18 +81,18 @@ func (q *Query) Where(where map[string]interface{}) *Query {
 	return q
 }
 
-func (q *Query) Group(fields...string) *Query {
-	q.group = "GROUP BY "+strings.Join(fields, ",")
+func (q *Query) Group(fields ...string) *Query {
+	q.group = " GROUP BY " + strings.Join(fields, ",")
 	return q
 }
 
 func (q *Query) Having(having string) *Query {
-	q.having = "HAVING "+ having
+	q.having = " HAVING " + having
 	return q
 }
 
-func (q *Query) Order(orders...string) *Query {
-	q.order = "ORDER BY "+ strings.Join(orders, ",")
+func (q *Query) Order(orders ...string) *Query {
+	q.order = " ORDER BY " + strings.Join(orders, ",")
 	return q
 }
 
@@ -116,7 +110,7 @@ func (q *Query) Limit(offset int64, limit int64) *Query {
 	return q
 }
 
-func buildWhere(where map[string]interface{}, args []interface{}) (condition []byte) {
+func buildWhere(where map[string]interface{}) (condition []byte, args []interface{}) {
 	if len(where) < 1 {
 		return
 	}
@@ -129,46 +123,55 @@ func buildWhere(where map[string]interface{}, args []interface{}) (condition []b
 		inLength int
 	)
 
+	args = utils.AcquireArgs()
 	for field, value := range where {
 		operator = "="
 		position = strings.Index(field, " ")
 		if position > 0 {
-			operator = field[position+1:]
+			operator = strings.ToUpper(field[position+1:])
 			field = field[:position]
 		}
 
-		if val,ok := value.([]interface{}); ok {
-			operator = "IN"
-			args = append(args, val...)
+		if val, ok := value.([]interface{}); ok {
 			inLength = len(val)
+			if operator != "BETWEEN" {
+				operator = "IN"
+			}
+			args = append(args, val...)
 		} else {
 			args = append(args, value)
 		}
 
+		buf.WriteString(" (")
+		buf.WriteString(field)
+
 		switch operator {
 		case "IN":
-			buf.WriteString(fmt.Sprintf(formatIn, field,  strings.Repeat(inHolder, inLength)[:2*inLength-1]))
+			buf.WriteString(" IN(")
+			buf.WriteString(strings.Repeat(inHolder, inLength)[:2*inLength-1])
+			buf.WriteString(")) AND")
 		case "BETWEEN":
-			buf.WriteString(fmt.Sprintf(formatBetween, field))
+			buf.WriteString(" BETWEEN ? AND ?) AND")
 		case "LIKE":
-			buf.WriteString(fmt.Sprintf(formatLike, field))
+			buf.WriteString(" LIKE ?) AND")
 		default:
-			buf.WriteString(fmt.Sprintf(formatCom, field, operator))
+			buf.WriteString(" ")
+			buf.WriteString(operator)
+			buf.WriteString(" ?) AND")
 		}
 	}
 
 	whereCon := buf.Bytes()
-	return whereCon[:len(whereCon) - 3]
+	return whereCon[:len(whereCon)-3], args
 }
 
 func BuildQuery(q *Query) (sql string, args []interface{}) {
-	args  = utils.AcquireArgs()
 	where := ""
 
-	condition := buildWhere(q.where, args)
+	condition, args := buildWhere(q.where)
 	if len(condition) > 0 {
 		where = string(condition)
 	}
 
-	return fmt.Sprintf(selectSql, q.columns, q.table, where, q.group, q.having, q.order, q.offset, q.limit), args
+	return "SELECT " + q.columns + " FROM " + q.table + where + q.group + q.having + q.order + " LIMIT " + strconv.FormatInt(q.offset, 10) + "," + strconv.FormatInt(q.limit, 10), args
 }
