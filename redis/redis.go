@@ -1,28 +1,12 @@
 package redis
 
 import (
-	redigo "github.com/garyburd/redigo/redis"
 	"strings"
-	"sync"
+
+	redigo "github.com/garyburd/redigo/redis"
+
+	"gin-boot/utils"
 )
-
-var (
-	//参数池
-	argsPool = &sync.Pool{
-		New: func() interface{} {
-			return make([]interface{}, 0, 8)
-		},
-	}
-)
-
-func acquireArgs() []interface{} {
-	return argsPool.Get().([]interface{})
-}
-
-func releaseArgs(args []interface{}) {
-	args = args[:0]
-	argsPool.Put(args)
-}
 
 type Redis struct {
 	conn redigo.Conn
@@ -51,11 +35,11 @@ func (this *Redis) Get(key []byte) ([]byte, error) {
 }
 
 func (this *Redis) Set(key []byte, params ...interface{}) bool {
-	args := acquireArgs()
+	args := utils.AcquireArgs()
 	args = append(args, key)
 	args = append(args, params...)
 	receive, _ := redigo.String(this.conn.Do("SET", args...))
-	releaseArgs(args)
+	utils.ReleaseArgs(args)
 	return strings.ToUpper(receive) == "OK"
 }
 

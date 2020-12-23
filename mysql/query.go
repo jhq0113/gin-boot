@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"gin-boot/utils"
 )
 
 const (
@@ -12,13 +14,15 @@ const (
 	formatBetween = " (`%s` BETWEEN ? AND ?) AND"
 	formatLike = " (`%s` LIKE ?) AND"
 	formatCom = " (`%s` %s ?) AND"
+	//SELECT fields FROM table WHERE condition GROUP BY fields HAVING aggregation ORDER BY fields LIMIT offset,limit
+	selectSql = "SELECT %s FROM %s %s %s %s %s LIMIT %d,%d"
 	inHolder =  "?,"
 	defaultLimit  = 1000
 )
 
 var (
-	defaultColumns       = []string{"*"}
-	wherePrefix          = []byte(" WHERE ")
+	defaultColumns       = "*"
+	wherePrefix          = []byte("WHERE ")
 	queryPool            = &sync.Pool{
 		New: func() interface{} {
 			query := &Query{
@@ -29,20 +33,15 @@ var (
 			return query
 		},
 	}
-
-	argsPool = &sync.Pool{
-		New: func() interface{} {
-			return make([]interface{}, 0, 8)
-		},
-	}
 )
 
 type Query struct {
 	table   string
-	columns []string
+	columns string
 	where   map[string]interface{}
-	group   []string
-	order   []string
+	group   string
+	having  string
+	order   string
 	offset  int64
 	limit   int64
 }
@@ -60,27 +59,15 @@ func ReleaseQuery(query *Query) {
 
 //---------------------查询对象池--------------------------
 
-//---------------------参数池--------------------------
-
-func acquireArgs() []interface{} {
-	return argsPool.Get().([]interface{})
-}
-
-func releaseArgs(args []interface{}) {
-	args = args[:0]
-	argsPool.Put(args)
-}
-
-//---------------------参数池--------------------------
-
 func (q *Query) reset() *Query {
 	q.table = ""
 	q.columns = defaultColumns
 	q.offset = 0
 	q.limit = defaultLimit
 	q.where = nil
-	q.group = nil
-	q.order = nil
+	q.group = ""
+	q.having = ""
+	q.order = ""
 
 	return q
 }
@@ -90,8 +77,8 @@ func (q *Query) From(table string) *Query {
 	return q
 }
 
-func (q *Query) Select(columns ...string) *Query {
-	q.columns = columns
+func (q *Query) Select(columns...string) *Query {
+	q.columns = strings.Join(columns, ",")
 	return q
 }
 
@@ -100,13 +87,18 @@ func (q *Query) Where(where map[string]interface{}) *Query {
 	return q
 }
 
-func (q *Query) Group(group ...string) *Query {
-	q.group = group
+func (q *Query) Group(fields...string) *Query {
+	q.group = "GROUP BY "+strings.Join(fields, ",")
 	return q
 }
 
-func (q *Query) Order(order ...string) *Query {
-	q.order = order
+func (q *Query) Having(having string) *Query {
+	q.having = "HAVING "+ having
+	return q
+}
+
+func (q *Query) Order(orders...string) *Query {
+	q.order = "ORDER BY "+ strings.Join(orders, ",")
 	return q
 }
 
@@ -169,6 +161,14 @@ func buildWhere(where map[string]interface{}, args []interface{}) (condition []b
 	return whereCon[:len(whereCon) - 3]
 }
 
-func BuildQuery(query *Query) (sql string, args []interface{}) {
-	buf := bytes.NewBufferString("SELECT")
+func BuildQuery(q *Query) (sql string, args []interface{}) {
+	args  = utils.AcquireArgs()
+	where := ""
+
+	condition := buildWhere(q.where, args)
+	if len(condition) > 0 {
+		where = string(condition)
+	}
+
+	return fmt.Sprintf(selectSql, q.columns, q.table, where, q.group, q.having, q.order, q.offset, q.limit), args
 }
