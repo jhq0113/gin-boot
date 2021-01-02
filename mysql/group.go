@@ -49,11 +49,7 @@ func NewGroup(groupOption conf.MysqlGroupOption) *Group {
 	return group
 }
 
-func (g *Group) Find() *Query {
-	return AcquireQuery()
-}
-
-func (g *Group) SelectDb(useMaster bool) *Pool {
+func (g *Group) SelectPool(useMaster bool) *Pool {
 	if useMaster {
 		if g.masterLen == 1 {
 			return g.Masters[0]
@@ -70,9 +66,9 @@ func (g *Group) SelectDb(useMaster bool) *Pool {
 }
 
 func (g *Group) Query(sqlStr string, args []interface{}, useMaster bool) (*sql.Rows, error) {
-	return g.SelectDb(useMaster).Query(sqlStr, args)
+	return g.SelectPool(useMaster).Query(sqlStr, args)
 }
 
 func (g *Group) Execute(sqlStr string, args ...interface{}) (sql.Result, error) {
-	return g.SelectDb(true).Execute(sqlStr, args...)
+	return g.SelectPool(true).Execute(sqlStr, args...)
 }

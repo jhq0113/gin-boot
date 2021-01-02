@@ -30,6 +30,7 @@ var (
 )
 
 type Query struct {
+	pool    *Pool
 	table   string
 	columns string
 	where   map[string]interface{}
@@ -53,6 +54,7 @@ func ReleaseQuery(query *Query) {
 //---------------------查询对象池--------------------------
 
 func (q *Query) reset() *Query {
+	q.pool = nil
 	q.table = ""
 	q.columns = defaultColumns
 	q.offset = 0
