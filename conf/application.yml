@@ -4,8 +4,29 @@ app:
 
 redis:
   boot:
-    - { host: 10.16.49.69, port: 6379, readTimeout: 200, writeTimeout: 200, poolSize: 10 }
-    - { host: 10.16.49.69, port: 6379, readTimeout: 200, writeTimeout: 200, poolSize: 10 }
+    - host: 10.16.49.69
+      port: 6379
+      readTimeout: 200
+      writeTimeout: 200
+      poolSize: 10
 
+    - host: 10.16.49.69
+      port: 6379
+      readTimeout: 200
+      writeTimeout: 200
+      poolSize: 10
+
+mysql:
+  boot:
+    masters:
+      - dsn: browser:browser.360@tcp(10.16.49.113:3306)/test
+        maxConnLifetime: 600
+        maxOpenConns: 50
+        maxIdleConns: 10
+    slaves:
+      - dsn: browser:browser.360@tcp(10.16.49.113:3306)/test
+        maxConnLifetime: 600
+        maxOpenConns: 50
+        maxIdleConns: 10
 params:
   pageSize: 15
