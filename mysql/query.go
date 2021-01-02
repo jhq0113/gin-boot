@@ -41,7 +41,6 @@ type Query struct {
 }
 
 //---------------------查询对象池--------------------------
-
 func AcquireQuery() *Query {
 	return queryPool.Get().(*Query)
 }

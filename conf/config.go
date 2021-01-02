@@ -18,9 +18,10 @@ func init() {
 }
 
 type Config struct {
-	App    App                      `yaml:"app" json:"app"`
-	Redis  map[string][]RedisOption `yaml:"redis" json:"redis"`
-	Params map[string]interface{}   `yaml:"params" json:"params"`
+	App    App                         `yaml:"app" json:"app"`
+	Redis  map[string][]RedisOption    `yaml:"redis" json:"redis"`
+	Mysql  map[string]MysqlGroupOption `yaml:"mysql" json:"mysql"`
+	Params map[string]interface{}      `yaml:"params" json:"params"`
 }
 
 type App struct {
@@ -47,13 +48,18 @@ type RedisOption struct {
 	WriteTimeout int `yaml:"writeTimeout" json:"writeTimeout"`
 }
 
+type MysqlGroupOption struct {
+	Masters []MysqlOption `yaml:"masters" json:"masters"`
+	Slaves  []MysqlOption `yaml:"slaves" json:"slaves"`
+}
+
 type MysqlOption struct {
 	//格式："userName:password@schema(host:port)/dbName"，如：root:123456@tcp(127.0.0.1:3306)/test
 	Dsn string `yaml:"dsn" json:"dsn"`
 	//单位s
-	MaxConnLifetime int  `yaml:"maxConnLifetime" json:"maxConnLifetime"`
-	MaxOpenConns    int  `yaml:"maxOpenConns" json:"maxOpenConns"`
-	MaxIdleConns    int  `yaml:"maxIdleConns" json:"maxIdleConns"`
+	MaxConnLifetime int `yaml:"maxConnLifetime" json:"maxConnLifetime"`
+	MaxOpenConns    int `yaml:"maxOpenConns" json:"maxOpenConns"`
+	MaxIdleConns    int `yaml:"maxIdleConns" json:"maxIdleConns"`
 }
 
 func YamlConfig(filePath string) *Config {
