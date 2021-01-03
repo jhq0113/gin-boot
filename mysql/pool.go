@@ -54,6 +54,7 @@ func (p *Pool) All(query *Query) (*sql.Rows, error) {
 		ReleaseQuery(query)
 		utils.ReleaseArgs(args)
 	}()
+
 	return p.db.Query(sqlStr, args...)
 }
 
@@ -64,7 +65,30 @@ func (p *Pool) One(query *Query) *sql.Row {
 		ReleaseQuery(query)
 		utils.ReleaseArgs(args)
 	}()
+
 	return p.db.QueryRow(sqlStr, args...)
+}
+
+func (p *Pool) Exists(table string, condition map[string]interface{}) (bool, error) {
+	where, args := buildWhere(condition)
+	defer utils.ReleaseArgs(args)
+
+	sqlStr := "SELECT COUNT(*) AS `num` FROM " + table + string(where)
+
+	rows, err := p.db.Query(sqlStr, args...)
+	if err != nil {
+		return false, err
+	}
+
+	rows.NextResultSet()
+	rows.Next()
+	var num int64
+	err = rows.Scan(&num)
+	if err != nil {
+		return false, err
+	}
+
+	return num > 0, nil
 }
 
 func (p *Pool) Insert(table string, columns map[string]interface{}) (sql.Result, error) {

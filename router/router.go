@@ -27,6 +27,7 @@ func Load() *gin.Engine {
 	router.GET("/mysql/batch-insert", mysql.BatchInsert)
 	router.GET("/mysql/some", mysql.Some)
 	router.GET("/mysql/one", mysql.One)
+	router.GET("/mysql/delete", mysql.Delete)
 
 	return router
 }
