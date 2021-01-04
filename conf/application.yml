@@ -19,12 +19,12 @@ redis:
 mysql:
   boot:
     masters:
-      - dsn: browser:browser.360@tcp(10.16.49.113:3306)/test
+      - dsn: browser:browser@tcp(127.0.0.1:3306)/test
         maxConnLifetime: 600
         maxOpenConns: 50
         maxIdleConns: 10
     slaves:
-      - dsn: browser:browser.360@tcp(10.16.49.113:3306)/test
+      - dsn: browser:browser@tcp(127.0.0.1:3306)/test
         maxConnLifetime: 600
         maxOpenConns: 50
         maxIdleConns: 10
